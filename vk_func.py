@@ -5,6 +5,7 @@ from vk_api.exceptions import ApiError
 from pprint import pprint
 
 # Вконтакте
+# Не забудь указать vk_user в vk_conf
 vk_group = vk_api.VkApi(token=group_token)
 vk_user = vk_api.VkApi(token=user_token)
 
@@ -18,12 +19,12 @@ def search_users(sex, age_at, age_to, city):
     response = vk_user.method('users.search',
                           {'sort': 1,
                            'sex': sex,
-                           'status': 1,
+                           'status': 6,
                            'age_from': age_at,
                            'age_to': age_to,
                            'has_photo': 1,
-                           'count': 25,
-                           'online': 1,
+                           'count': 300,
+                           'online': 0,
                            'hometown': city
                            })
     for element in response['items']:
@@ -68,4 +69,3 @@ def get_photo(user_id):
     sort2_users_photos.append(sort_users_photos[1])
     sort2_users_photos.append(sort_users_photos[2])
     return sort2_users_photos
-
