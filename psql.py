@@ -13,13 +13,13 @@ connection = engine.connect()
 
 
 
-# Классы и функции для работы с базой
-#_______________________________________________________
+# ****** Классы и функции для работы с базой ******
 
-# Пользователь
-#_______________________________________________________
+
+# _____Пользователь_____
 
 #Класс создания таблицы пользователя бота
+
 class User(Base):
     __tablename__ = 'bot_user'
     id = sq.Column(sq.Integer, primary_key=True, autoincrement=True)
@@ -31,6 +31,9 @@ class User(Base):
     city = sq.Column(sq.String)
 
 # Проверка регистрации пользователя в БД 
+# => Принимает vk_id 
+# => Возращает True или False
+
 def check_db_master(vk_id):
     current_user_id = session.query(User).filter_by(vk_id_user=vk_id).first()
     if current_user_id == vk_id:
@@ -38,7 +41,10 @@ def check_db_master(vk_id):
     else:
         return False
 
-# Регистрация пользователя
+# Регистрация пользователя 
+# => Принимает vk_id_user, name, surname, age, sex, city   
+# => Возвращает True если регистрация прошла успешно или False если что то пошло не так
+
 def register_user(vk_id_user, name, surname, age, sex, city):
     try:
         new_user = User(
@@ -55,8 +61,7 @@ def register_user(vk_id_user, name, surname, age, sex, city):
     except (IntegrityError, InvalidRequestError):
         return False
 
-# Избранное
-#_______________________________________________________
+# _____Избранное_____
 
 # Класс создания таблицы избранных пользователей
 class DatingUser(Base):
@@ -77,8 +82,7 @@ class Photos_DatingUser(Base):
     link_photo = sq.Column(sq.String)
     fav_vk_id = sq.Column(sq.Integer, sq.ForeignKey('favourite.fav_vk_id', ondelete='CASCADE'))
 
-# Черный список
-#_______________________________________________________
+# _____Черный список_____
 
 # Класс создания таблицы черного списка
 class BlackList(Base):

@@ -11,7 +11,10 @@ vk_user = vk_api.VkApi(token=user_token)
 
 
 
-# Поиск партнеров => список людей Имя, Фамилия, ссылка, id
+
+# Поиск партнеров
+# => Принимает sex, age_at, age_to, city
+# => Возращает список из словарей {'name': 'test', 'surname': 'test', 'link': 'test', 'vk_id_user': 'test'}
 
 def search_users(sex, age_at, age_to, city):
     suitable_people = []
@@ -32,7 +35,13 @@ def search_users(sex, age_at, age_to, city):
         suitable_people.append(people)
     return suitable_people
 
-# поиск фото => список из трех самых популярных фото
+
+
+
+# Поиск фото
+# => Принимает vk_id 
+# => Возращает список из трех самых популярный фото ['фото1', 'фото2', 'фото3']
+
 def get_photo(user_id):
     # Получаем фото
     basic_link = 'https://vk.com/'
