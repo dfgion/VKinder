@@ -69,3 +69,5 @@ def get_photo(user_id):
     sort2_users_photos.append(sort_users_photos[1])
     sort2_users_photos.append(sort_users_photos[2])
     return sort2_users_photos
+
+
