@@ -71,7 +71,7 @@ class DatingUser(Base):
 
 
 # Класс создания таблицы фото избранных пользователей
-class Photos(Base):
+class Photos_DatingUser(Base):
     __tablename__ = 'favourite_photos'
     id = sq.Column(sq.Integer, primary_key=True, autoincrement=True)
     link_photo = sq.Column(sq.String)
@@ -91,7 +91,7 @@ class BlackList(Base):
     vk_id_user = sq.Column(sq.Integer, sq.ForeignKey('bot_user.vk_id_user', ondelete='CASCADE'))
 
 # Класс создания таблицы фото черного списка
-class Photos(Base):
+class Photos_BlackList(Base):
     __tablename__ = 'black_list_photos'
     id = sq.Column(sq.Integer, primary_key=True, autoincrement=True)
     link_photo = sq.Column(sq.String)
