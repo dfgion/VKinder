@@ -34,7 +34,7 @@ class User(Base):
 # => Принимает vk_id 
 # => Возращает True или False
 
-def check_db_master(vk_id):
+def registr_info(vk_id):
     current_user_id = session.query(User).filter_by(vk_id_user=vk_id).first()
     if current_user_id == vk_id:
         return True
@@ -45,7 +45,7 @@ def check_db_master(vk_id):
 # => Принимает vk_id_user, name, surname, age, sex, city   
 # => Возвращает True если регистрация прошла успешно или False если что то пошло не так
 
-def register_user(vk_id_user, name, surname, age, sex, city):
+def registration(vk_id_user, name, surname, age, sex, city):
     try:
         new_user = User(
             vk_id_user = vk_id_user,
