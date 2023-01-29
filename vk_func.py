@@ -28,12 +28,7 @@ def search_users(sex, age_at, age_to, city):
                            'hometown': city
                            })
     for element in response['items']:
-        people = [
-            element['first_name'],
-            element['last_name'],
-            basic_link + str(element['id']),
-            element['id']
-        ]
+        people = {'name': element['first_name'], 'surname':  element['last_name'], 'link': basic_link + str(element['id']), 'vk_id_user': element['id']}
         suitable_people.append(people)
     return suitable_people
 
