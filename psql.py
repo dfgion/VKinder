@@ -123,8 +123,8 @@ def add_user_favourite_photos(link_photo, fav_vk_id):
         return False
 
 # Получение фото пользователей в избранном
-# => Принимает vk_id_user
-# => Возвращает все добавленные анкеты пользователем в избранное
+# => Принимает fav_vk_id
+# => Возвращает фото добавленные к анкете в избранном
 def check_favourite_photos(fav_vk_id):
     curren_fav_users_id = session.query(User).filter_by(fav_vk_id=fav_vk_id).first()
     all_favorite_photos = session.query(FavUser).filter_by(fav_vk_id=curren_fav_users_id.fav_vk_id).all()
