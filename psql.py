@@ -1,5 +1,5 @@
 import sqlalchemy as sq
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import IntegrityError, InvalidRequestError
 
@@ -64,7 +64,7 @@ def registration(vk_id_user, name, surname, age, sex, city):
 # _____Избранное_____
 
 # Класс создания таблицы избранных пользователей
-class DatingUser(Base):
+class FavUser(Base):
     __tablename__ = 'favourite'
     id = sq.Column(sq.Integer, primary_key=True, autoincrement=True)
     fav_vk_id = sq.Column(sq.Integer, unique=True)
@@ -73,14 +73,63 @@ class DatingUser(Base):
     link = sq.Column(sq.String)
     vk_id_user = sq.Column(sq.Integer, sq.ForeignKey('bot_user.vk_id_user', ondelete='CASCADE'))
 
+# Добавление пользователя в избранное
+# => Принимает fav_vk_id, name, surname, link, vk_id_user
+# => Возвращает True если добавление прошло успешно или False если пользователь уже есть в избранном
+def add_user_favourite(fav_vk_id, name, surname, link, vk_id_user):
+    try:
+        new_user = FavUser(
+            fav_vk_id=fav_vk_id,
+            name=name,
+            surname=surname,
+            link=link,
+            vk_id_user=vk_id_user
+        )
+        session.add(new_user)
+        session.commit()
+        return True
+    except (IntegrityError, InvalidRequestError):
+        return False
+
+# Получение пользователей в избранном
+# => Принимает vk_id_user
+# => Возвращает все добавленные анкеты пользователем в избранное
+def check_favourite(vk_id_user):
+    current_users_id = session.query(User).filter_by(vk_id_user=vk_id_user).first()
+    all_favorite = session.query(FavUser).filter_by(vk_id_user=current_users_id.vk_id_user).all()
+    return all_favorite
 
 
 # Класс создания таблицы фото избранных пользователей
-class Photos_DatingUser(Base):
+class Photos_FavUser(Base):
     __tablename__ = 'favourite_photos'
     id = sq.Column(sq.Integer, primary_key=True, autoincrement=True)
     link_photo = sq.Column(sq.String)
     fav_vk_id = sq.Column(sq.Integer, sq.ForeignKey('favourite.fav_vk_id', ondelete='CASCADE'))
+
+# Сохранение в БД фото избранного пользователя
+# => Принимает link_photo, fav_vk_id
+# => Возвращает True если добавление прошло успешно или False если фото уже есть 
+def add_user_favourite_photos(link_photo, fav_vk_id):
+    try:
+        new_user = Photos_FavUser(
+            link_photo=link_photo,
+            fav_vk_id=fav_vk_id
+        )
+        session.add(new_user)
+        session.commit()
+        return True
+    except (IntegrityError, InvalidRequestError):
+        return False
+
+# Получение фото пользователей в избранном
+# => Принимает vk_id_user
+# => Возвращает все добавленные анкеты пользователем в избранное
+def check_favourite_photos(fav_vk_id):
+    curren_fav_users_id = session.query(User).filter_by(fav_vk_id=fav_vk_id).first()
+    all_favorite_photos = session.query(FavUser).filter_by(fav_vk_id=curren_fav_users_id.fav_vk_id).all()
+    return all_favorite_photos
+
 
 # _____Черный список_____
 
