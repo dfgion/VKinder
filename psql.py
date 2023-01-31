@@ -36,7 +36,7 @@ class User(Base):
 
 def registr_info(vk_id):
     current_user_id = session.query(User).filter_by(vk_id_user=vk_id).first()
-    if current_user_id == vk_id:
+    if current_user_id.vk_id_user == vk_id:
         return True
     else:
         return False
@@ -126,8 +126,8 @@ def add_user_favourite_photos(link_photo, fav_vk_id):
 # => Принимает fav_vk_id
 # => Возвращает фото добавленные к анкете в избранном
 def check_favourite_photos(fav_vk_id):
-    curren_fav_users_id = session.query(User).filter_by(fav_vk_id=fav_vk_id).first()
-    all_favorite_photos = session.query(FavUser).filter_by(fav_vk_id=curren_fav_users_id.fav_vk_id).all()
+    curren_fav_users_id = session.query(FavUser).filter_by(fav_vk_id=fav_vk_id).first()
+    all_favorite_photos = session.query(Photos_FavUser).filter_by(fav_vk_id=curren_fav_users_id.fav_vk_id).all()
     return all_favorite_photos
 
 
