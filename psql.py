@@ -143,9 +143,58 @@ class BlackList(Base):
     link = sq.Column(sq.String)
     vk_id_user = sq.Column(sq.Integer, sq.ForeignKey('bot_user.vk_id_user', ondelete='CASCADE'))
 
+# Добавление пользователя в ЧС
+# => Принимает bl_vk_id, name, surname, link, vk_id_user
+# => Возвращает True если добавление прошло успешно или False если пользователь уже есть в ЧС
+def add_user_black_list(bl_vk_id, name, surname, link, vk_id_user):
+    try:
+        new_user = BlackList(
+            bl_vk_id=bl_vk_id,
+            name=name,
+            surname=surname,
+            link=link,
+            vk_id_user=vk_id_user
+        )
+        session.add(new_user)
+        session.commit()
+        return True
+    except (IntegrityError, InvalidRequestError):
+        return False
+
+# Получение пользователей в ЧС
+# => Принимает vk_id_user
+# => Возвращает все добавленные анкеты пользователем в ЧС
+def check_black_list(vk_id_user):
+    current_users_id = session.query(User).filter_by(vk_id_user=vk_id_user).first()
+    all_black_list = session.query(BlackList).filter_by(vk_id_user=current_users_id.vk_id_user).all()
+    return all_black_list
+
 # Класс создания таблицы фото черного списка
 class Photos_BlackList(Base):
     __tablename__ = 'black_list_photos'
     id = sq.Column(sq.Integer, primary_key=True, autoincrement=True)
     link_photo = sq.Column(sq.String)
     bl_vk_id = sq.Column(sq.Integer, sq.ForeignKey('black_list.bl_vk_id', ondelete='CASCADE'))
+
+# Сохранение в БД фото ЧС пользователя
+# => Принимает link_photo, bl_vk_id
+# => Возвращает True если добавление прошло успешно или False если фото уже есть 
+def add_user_black_list(link_photo, bl_vk_id):
+    try:
+        new_user = Photos_BlackList(
+            link_photo=link_photo,
+            bl_vk_id=bl_vk_id
+        )
+        session.add(new_user)
+        session.commit()
+        return True
+    except (IntegrityError, InvalidRequestError):
+        return False
+    
+# Получение фото пользователей в избранном
+# => Принимает bl_vk_id
+# => Возвращает фото добавленные к анкете в ЧС
+def check_black_list_photos(bl_vk_id):
+    curren_fav_users_id = session.query(BlackList).filter_by(bl_vk_id=bl_vk_id).first()
+    all_black_list_photos = session.query(Photos_BlackList).filter_by(bl_vk_id=curren_fav_users_id.bl_vk_id).all()
+    return all_black_list_photos
