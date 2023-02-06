@@ -1,6 +1,5 @@
 import vk_api
 from vk_api.exceptions import ApiError
-from pprint import pprint
 from sqlalchemy.orm import sessionmaker
 from psql import User
 import sqlalchemy as sq
@@ -35,43 +34,50 @@ def search_users(sex, age_at, age_to, city, vk_id):
         suitable_people.append(people)
     return suitable_people
 
-
-
-
+def like_add(user_id, owner_id, photo_id):
+    vk_user = vk_api.VkApi(token=session.query(User).filter_by(vk_id_user=user_id).first().token)
+    vk_user.method('likes.add', {'type': 'photo', 'owner_id': owner_id, 'item_id': photo_id})
+         
 # Поиск фото
 # => Принимает vk_id 
 # => Возращает список из трех самых популярный фото ['фото1', 'фото2', 'фото3']
 
-def get_photo(user_id):
+def get_photo(user_id, owner_id, mode):
     vk_user = vk_api.VkApi(token=session.query(User).filter_by(vk_id_user=user_id).first().token)
     # Получаем фото
-    basic_link = 'https://vk.com/'
     try:
         response = vk_user.method('photos.get',
-                              {
-                                  'access_token': session.query(User).filter_by(vk_id_user=user_id).first().token,
-                                  'owner_id': user_id,
-                                  'album_id': 'profile',
-                                  'count': 10,
-                                  'extended': 1,
-                                  'photo_sizes': 1,
-                              })
+                                {
+                                'access_token': session.query(User).filter_by(vk_id_user=user_id).first().token,
+                                'owner_id': owner_id,
+                                'album_id': 'profile',
+                                'count': 10,
+                                'extended': 1,
+                                'photo_sizes': 1,
+                                })
     except ApiError:
-        return 'нет доступа к фото'
+        return 'Нет доступа к фото🥺'
     # Формируем черновой список фото
     users_photos = []
     for i in range(10):
         try:
             users_photos.append(
                 [response['items'][i]['likes']['count'],
-                 str(basic_link) + 'photo' + str(response['items'][i]['owner_id']) + '_' + str(response['items'][i]['id'])])
+                'photo' + str(response['items'][i]['owner_id']) + '_' + str(response['items'][i]['id']), 
+                str(response['items'][i]['id'])])
         except IndexError:
-            users_photos.append([0, 'нет фото.'])
+            pass
     # Сортируем фото по лайкам и отдаем 3 лучших фото
-    sort_users_photos = sorted(users_photos, reverse=True)
-    sort2_users_photos = []
-    sort2_users_photos.append(sort_users_photos[0])
-    sort2_users_photos.append(sort_users_photos[1])
-    sort2_users_photos.append(sort_users_photos[2])
-    return sort2_users_photos
+    if mode == 'photo':
+        sort_users_photos = sorted(users_photos, reverse=True)
+        sort2_users_photos = []
+        counter = 0
+        for element in sort_users_photos:
+            if counter == 3:
+                break
+            sort2_users_photos.append(element[1])
+            counter += 1
+        return sort2_users_photos
+    else:
+        return users_photos[0][2] # В нулевом элементе хранится аватарка.
 
