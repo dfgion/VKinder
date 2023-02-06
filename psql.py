@@ -73,6 +73,7 @@ class FavUser(Base):
     link = sq.Column(sq.String)
     vk_id_user = sq.Column(sq.Integer, sq.ForeignKey('bot_user.vk_id_user', ondelete='CASCADE'))
 
+
 # Добавление пользователя в избранное
 # => Принимает fav_vk_id, name, surname, link, vk_id_user
 # => Возвращает True если добавление прошло успешно или False если пользователь уже есть в избранном
@@ -99,6 +100,13 @@ def check_favourite(vk_id_user):
     all_favorite = session.query(FavUser).filter_by(vk_id_user=current_users_id.vk_id_user).all()
     return all_favorite
 
+# Удаление пользователей из избранного
+# => Принимает fav_vk_id
+# => Удалаяет анкету из избранного
+def delete_favourite(fav_vk_id):
+    current_user = session.query(FavUser).filter_by(fav_vk_id=fav_vk_id).first()
+    session.delete(current_user)
+    session.commit()
 
 # Класс создания таблицы фото избранных пользователей
 class Photos_FavUser(Base):
@@ -168,6 +176,14 @@ def check_black_list(vk_id_user):
     current_users_id = session.query(User).filter_by(vk_id_user=vk_id_user).first()
     all_black_list = session.query(BlackList).filter_by(vk_id_user=current_users_id.vk_id_user).all()
     return all_black_list
+
+# Удаление пользователей из ЧС
+# => Принимает bl_vk_id
+# => Удалаяет анкету из ЧС
+def delete_favourite(bl_vk_id):
+    current_user = session.query(BlackList).filter_by(bl_vk_id=bl_vk_id).first()
+    session.delete(current_user)
+    session.commit()
 
 # Класс создания таблицы фото черного списка
 class Photos_BlackList(Base):
