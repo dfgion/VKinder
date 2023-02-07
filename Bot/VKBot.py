@@ -5,7 +5,7 @@ from vk_api.bot_longpoll import VkBotLongPoll
 from config import group_id
 
 
-class Legacy:
+class Legacy: # Реализация бота в виде класса
 	def __init__(self, group_token):
 		self.token = group_token
 		self.vk = vk_api.VkApi(token=group_token)
