@@ -1,14 +1,7 @@
 import vk_api
 from vk_api.exceptions import ApiError
-from sqlalchemy.orm import sessionmaker
 from psql import User
-import sqlalchemy as sq
-
-DSN = 'postgresql://postgres:nicaragua21@localhost:5432/VKinder'
-engine = sq.create_engine(DSN)
-Session = sessionmaker(bind=engine)
-session = Session()
-connection = engine.connect()
+from psql import session
 
 
 # Поиск партнеров

@@ -5,7 +5,7 @@ from sqlalchemy.exc import IntegrityError, InvalidRequestError
 
 # База данных подключение 
 Base = declarative_base()
-DSN = 'postgresql://postgres:nicaragua21@localhost:5432/VKinder'
+DSN = 'postgresql://postgres:password@localhost:5432/base_name'
 engine = sq.create_engine(DSN)
 Session = sessionmaker(bind=engine)
 session = Session()
