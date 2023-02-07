@@ -1,14 +1,7 @@
 import vk_api
 from vk_api.exceptions import ApiError
-from sqlalchemy.orm import sessionmaker
 from psql import User
-import sqlalchemy as sq
-
-DSN = 'postgresql://postgres:jjUUhy23@localhost:5432/vkinder_db'
-engine = sq.create_engine(DSN)
-Session = sessionmaker(bind=engine)
-session = Session()
-connection = engine.connect()
+from psql import session
 
 # Поиск партнеров
 # => Принимает sex, age_at, age_to, city

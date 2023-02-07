@@ -15,20 +15,34 @@ def favorite_longpoll(user_id, favorite_keyboard, menu_keyboard):
         people_list = []
         for element in info_list:
             people_list.append(element[0]+' '+element[1]+' '+element[2])
-        VkBot.write_msg(user_id=user_id, message='Вот ваш список избранных:\n {}\n\n1. Вернуться назад\n 2. Убрать человека из ЧС'.format('\n'.join(people_list)), keyboard=favorite_keyboard)
+        VkBot.write_msg(user_id=user_id, message='Вот ваш список избранных:\n {}\n\n1. Вернуться назад\n2. Убрать человека из списка избранных'.format('\n'.join(people_list)), keyboard=favorite_keyboard)
         for event in VkBot.longpoll.listen():
             if event.type == VkBotEventType.MESSAGE_NEW:
                 if event.message['text'].lower() == 'вернуться назад' or event.message['text'] == '1':
                     VkBot.write_msg(user_id=user_id, message='Меню:\n1. Начать поиск\n2. Просмотреть черный список\n3. Просмотреть список избранных', keyboard=menu_keyboard)
                     return main(menu_keyboard=menu_keyboard, user_id=event.message['from_id'], )
                 elif event.message['text'].lower() == 'убрать человека из избранных' or event.message['text'] == '2':
-                    ... 
+                    delete_user_from_favorite(main_keyboard=favorite_keyboard, people_list=people_list, user_id=user_id)
     else:
         return VkBot.write_msg(user_id=user_id, message='У вас нет людей в списке избранного', keyboard=menu_keyboard)
-        
-                  
-     
 
+def delete_user_from_favorite(main_keyboard, people_list, user_id): # Запуск сессии для удаления из списка избранных
+    VkBot.write_msg(user_id=user_id, message='Введите имя и фамилию человека', keyboard=main_keyboard)
+    for event in VkBot.longpoll.listen():
+        if event.type == VkBotEventType.MESSAGE_NEW:
+            request = event.message['text']
+            if re.search(r"[А-ЯA-Z]{1}[а-яa-z]+\s+[А-ЯA-Z]{1}[а-яa-z]+", request):
+                for element in people_list:
+                    if request in element:
+                        psql.delete_black_list(element.split(' ')[0])
+                        return VkBot.write_msg(user_id=user_id, message='Сделано.')
+                    else:
+                        return VkBot.write_msg(user_id=event.message['from_id'], message='Введите данные корректно', keyboard=main_keyboard)
+            elif request.lower() == 'вернуться назад' or request == '1':
+                return VkBot.write_msg(user_id=event.message['from_id'], message='Вот ваш черный список:\n {}\n1. Вернуться назад\n2. Убрать человека из списка избранных'.format(people_list), keyboard=main_keyboard)
+            else:
+                return VkBot.write_msg(user_id=event.message['from_id'], message='Введите данные корректно', keyboard=main_keyboard)
+             
 def registration_longpoll(question, user_id, menu_keyboard): # Запуск сессии для регистрации пользователя в БД
     return_keyboard = VkBot.create_keyboard(buttons=[{
                                         'name': 'Вернуться назад', 
@@ -111,13 +125,11 @@ def registration_longpoll(question, user_id, menu_keyboard): # Запуск се
                         VkBot.write_msg(user_id=user_id, message='Введите ваш город корректно\n 1. Вернуться назад', keyboard=location_keyboard)
 
 def black_list_longpoll(user_id, return_keyboard, menu_keyboard): # Запуск сессии для взаимодействия с черным списком
-    print(1)
     black_list = psql.check_black_list(vk_id_user=user_id)
     if len(black_list) > 0:
-        print(2)
         people_list = []
         for element in black_list:
-            people_list.append(element[0]+' '+element[1]+' '+element[2]) 
+            people_list.append(element[0]+' '+element[1]+' '+element[2]+' '+ element[3]) 
         VkBot.write_msg(user_id=user_id, message='Вот ваш черный список:\n {}\n\n1. Вернуться назад\n 2. Убрать человека из ЧС'.format('\n'.join(people_list)), keyboard=return_keyboard)
         for event in VkBot.longpoll.listen():
                                 if event.type == VkBotEventType.MESSAGE_NEW:
@@ -126,22 +138,26 @@ def black_list_longpoll(user_id, return_keyboard, menu_keyboard): # Запуск
                                             VkBot.write_msg(user_id=user_id, message='Меню:\n1. Начать поиск\n2. Просмотреть черный список\n3. Просмотреть список избранных', keyboard=menu_keyboard)
                                             return main(menu_keyboard=menu_keyboard, user_id=event.message['from_id'])
                                         elif request.lower() == 'убрать человека из чс' or request == '2':
-                                            VkBot.write_msg(user_id=event.message['from_id'], message='В разработке', keyboard=return_keyboard)
-                                            # delete_user_from_black_list(main_keyboard=return_keyboard, people_list=people_list)
+                                            delete_user_from_black_list(main_keyboard=return_keyboard, people_list=people_list, user_id=user_id)
                                         else:
                                             VkBot.write_msg(user_id=event.message['from_id'], message='Выберите вариант из предложенных!\n1. Вернуться назад\n2. Убрать человека из ЧС', keyboard=return_keyboard)
     else:
         return VkBot.write_msg(user_id=user_id, message='У вас нет людей в черном списке', keyboard=menu_keyboard)
 
-def delete_user_from_black_list(main_keyboard, people_list): # Запуск сессии для удаления из черного списка
+def delete_user_from_black_list(main_keyboard, people_list, user_id): # Запуск сессии для удаления из черного списка
+    VkBot.write_msg(user_id=user_id, message='Введите имя и фамилию человека', keyboard=main_keyboard)
     for event in VkBot.longpoll.listen():
         if event.type == VkBotEventType.MESSAGE_NEW:
             request = event.message['text']
             if re.search(r"[А-ЯA-Z]{1}[а-яa-z]+\s+[А-ЯA-Z]{1}[а-яa-z]+", request):
-                VkBot.write_msg(user_id=event.message['from_id'], message='В разработке...')
-                # DB.delete_user_black_list(request)
+                for element in people_list:
+                    if request in element:
+                        psql.delete_black_list(element.split(' ')[0])
+                        return VkBot.write_msg(user_id=user_id, message='Сделано.')
+                    else:
+                        return VkBot.write_msg(user_id=event.message['from_id'], message='Введите данные корректно', keyboard=main_keyboard)
             elif request.lower() == 'вернуться назад' or request == '1':
-                return VkBot.write_msg(user_id=event.message['from_id'], message='Вот ваш черный список:\n {}\n1. Вернуться назад\n 2. Убрать человека из ЧС'.format(people_list), keyboard=main_keyboard)
+                return VkBot.write_msg(user_id=event.message['from_id'], message='Вот ваш черный список:\n {}\n1. Вернуться назад\n2. Убрать человека из ЧС'.format(people_list), keyboard=main_keyboard)
             else:
                 return VkBot.write_msg(user_id=event.message['from_id'], message='Введите данные корректно', keyboard=main_keyboard)
 
@@ -255,18 +271,18 @@ def searching_question(search_keyboard, like_for_id = None, photo_id = None, cou
             elif event.message['text'].lower() == 'вернуться назад' or event.message['text'] == '3':
                 return False
             elif event.message['text'].lower() == 'добавить в избранных' or event.message['text'] == '4':
-                if (fav_name, fav_surname, fav_link) in psql.check_favourite(vk_id_user=event.message['from_id']):
+                if (like_for_id, fav_name, fav_surname, fav_link) in psql.check_favourite(vk_id_user=event.message['from_id']):
                     VkBot.write_msg(user_id=event.message['from_id'], message='Пользователь уже в списке избранных', keyboard=search_keyboard)
-                elif (fav_name, fav_surname, fav_link) in psql.check_black_list(vk_id_user=event.message['from_id']):
+                elif (like_for_id, fav_name, fav_surname, fav_link) in psql.check_black_list(vk_id_user=event.message['from_id']):
                     VkBot.write_msg(user_id=event.message['from_id'], message='Пользователь в ЧС', keyboard=search_keyboard)
                 else:
                     psql.add_user_favourite(vk_id_user=event.message['from_id'], name=fav_name, surname=fav_surname, link=fav_link, fav_vk_id=like_for_id)
-                    # psql.add_user_favourite_photos(fav_vk_id=like_for_id, link_photo=attachment)
                     VkBot.write_msg(user_id=event.message['from_id'], message='✅', keyboard=search_keyboard)
             elif event.message['text'].lower() == 'добавить в чс' or event.message['text'] == '5':
-                if (fav_name, fav_surname, fav_link) in psql.check_black_list(vk_id_user=event.message['from_id']):
+                print(psql.check_black_list(vk_id_user=event.message['from_id']))
+                if (like_for_id, fav_name, fav_surname, fav_link) in psql.check_black_list(vk_id_user=event.message['from_id']):
                     VkBot.write_msg(user_id=event.message['from_id'], message='Пользователь уже в ЧС', keyboard=search_keyboard)
-                elif (fav_name, fav_surname, fav_link) in psql.check_favourite(vk_id_user=event.message['from_id']):
+                elif (like_for_id, fav_name, fav_surname, fav_link) in psql.check_favourite(vk_id_user=event.message['from_id']):
                     VkBot.write_msg(user_id=event.message['from_id'], message='Пользователь в списке избранных', keyboard=search_keyboard)
                 else:
                     psql.add_user_black_list(vk_id_user=event.message['from_id'], name=fav_name, surname=fav_surname, link=fav_link, bl_vk_id=like_for_id)

@@ -5,7 +5,7 @@ from sqlalchemy.exc import IntegrityError, InvalidRequestError
 
 # База данных подключение 
 Base = declarative_base()
-DSN = 'postgresql://postgres:jjUUhy23@localhost:5432/vkinder_db'
+DSN = ''
 engine = sq.create_engine(DSN)
 Session = sessionmaker(bind=engine)
 session = Session()
@@ -94,9 +94,13 @@ def add_user_favourite(fav_vk_id, name, surname, link, vk_id_user):
 # => Возвращает все добавленные анкеты пользователем в избранное
 def check_favourite(vk_id_user):
     current_users_id = session.query(User).filter_by(vk_id_user=vk_id_user).first()
-    all_favorite = session.query(FavUser.name, FavUser.surname, FavUser.link).filter_by(vk_id_user=current_users_id.vk_id_user).all()
+    all_favorite = session.query(FavUser.fav_vk_id, FavUser.name, FavUser.surname, FavUser.link).filter_by(vk_id_user=current_users_id.vk_id_user).all()
     return all_favorite
 
+def delete_favourite(fav_vk_id):
+    current_user = session.query(FavUser).filter_by(fav_vk_id=fav_vk_id).first()
+    session.delete(current_user)
+    session.commit()
 
 # Класс создания таблицы фото избранных пользователей
 class Photos_FavUser(Base):
@@ -144,6 +148,11 @@ class BlackList(Base):
     link = sq.Column(sq.String)
     vk_id_user = sq.Column(sq.Integer, sq.ForeignKey('bot_user.vk_id_user', ondelete='CASCADE'))
 
+def delete_black_list(bl_vk_id):
+    current_user = session.query(BlackList).filter_by(bl_vk_id=bl_vk_id).first()
+    session.delete(current_user)
+    session.commit()
+
 # Добавление пользователя в ЧС
 # => Принимает bl_vk_id, name, surname, link, vk_id_user
 # => Возвращает True если добавление прошло успешно или False если пользователь уже есть в ЧС
@@ -167,7 +176,7 @@ def add_user_black_list(bl_vk_id, name, surname, link, vk_id_user):
 # => Возвращает все добавленные анкеты пользователем в ЧС
 def check_black_list(vk_id_user):
     current_users_id = session.query(User).filter_by(vk_id_user=vk_id_user).first()
-    all_black_list = session.query(BlackList.name, BlackList.surname, BlackList.link).filter_by(vk_id_user=current_users_id.vk_id_user).all()
+    all_black_list = session.query(BlackList.bl_vk_id, BlackList.name, BlackList.surname, BlackList.link).filter_by(vk_id_user=current_users_id.vk_id_user).all()
     return all_black_list
 
 # Класс создания таблицы фото черного списка
