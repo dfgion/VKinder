@@ -4,7 +4,7 @@ from vk_api.bot_longpoll import VkBotEventType
 from vk_api.keyboard import VkKeyboardColor
 import re
 import requests
-import psql 
+import psql
 import vk_func as vf
 
 
@@ -37,7 +37,8 @@ def delete_user_from_favorite(main_keyboard, people_list, user_id): # Запус
                         psql.delete_black_list(element.split(' ')[0])
                         return VkBot.write_msg(user_id=user_id, message='Сделано.')
                     else:
-                        return VkBot.write_msg(user_id=event.message['from_id'], message='Введите данные корректно', keyboard=main_keyboard)
+                        VkBot.write_msg(user_id=event.message['from_id'], message='Введите данные корректно', keyboard=main_keyboard)
+                        return delete_user_from_favorite(main_keyboard=main_keyboard, people_list=people_list, user_id=user_id)
             elif request.lower() == 'вернуться назад' or request == '1':
                 return VkBot.write_msg(user_id=event.message['from_id'], message='Вот ваш черный список:\n {}\n1. Вернуться назад\n2. Убрать человека из списка избранных'.format(people_list), keyboard=main_keyboard)
             else:
@@ -155,7 +156,8 @@ def delete_user_from_black_list(main_keyboard, people_list, user_id): # Запу
                         psql.delete_black_list(element.split(' ')[0])
                         return VkBot.write_msg(user_id=user_id, message='Сделано.')
                     else:
-                        return VkBot.write_msg(user_id=event.message['from_id'], message='Введите данные корректно', keyboard=main_keyboard)
+                        VkBot.write_msg(user_id=event.message['from_id'], message='Введите данные корректно', keyboard=main_keyboard)
+                        return delete_user_from_favorite(main_keyboard=main_keyboard, people_list=people_list, user_id=user_id)
             elif request.lower() == 'вернуться назад' or request == '1':
                 return VkBot.write_msg(user_id=event.message['from_id'], message='Вот ваш черный список:\n {}\n1. Вернуться назад\n2. Убрать человека из ЧС'.format(people_list), keyboard=main_keyboard)
             else:
@@ -291,146 +293,209 @@ def searching_question(search_keyboard, like_for_id = None, photo_id = None, cou
                 VkBot.write_msg(user_id=event.message['from_id'], message='Выберите вариант из предложенных', keyboard=search_keyboard)
 
 def start_search(menu_keyboard, user_id):
-    search_keyboard = VkBot.create_keyboard([{
-                                            'name': 'Следующий человек',  
-                                            'color': VkKeyboardColor.SECONDARY,
-                                            'type': 'text'
-                                            },
-                                            {
-                                            'name': 'Поставить лайк',  
-                                            'color': VkKeyboardColor.POSITIVE,
-                                            'type': 'text'
-                                            },
-                                            {
-                                            'name': 'Вернуться назад',  
-                                            'color': VkKeyboardColor.PRIMARY,
-                                            'type': 'text'  
-                                            },
-                                            {
-                                            'name': 'Добавить в избранных',  
-                                            'color': VkKeyboardColor.POSITIVE,
-                                            'type': 'text'         
-                                            },
-                                            {
-                                            'name': 'Добавить в ЧС',  
-                                            'color': VkKeyboardColor.NEGATIVE,
-                                            'type': 'text'         
-                                            }]).get_keyboard()
-    age_at = info_searching(info='age_at', menu_keyboard=menu_keyboard, user_id=user_id)
-    for user in vf.search_users(age_at=age_at, age_to=info_searching(info='age_to', menu_keyboard=menu_keyboard, user_id=user_id, age_for_comparing=age_at), sex=info_searching(info='sex', menu_keyboard=menu_keyboard, user_id=user_id), city=info_searching(info='city', menu_keyboard=menu_keyboard, user_id=user_id), vk_id=user_id):
-        VkBot.write_msg(user_id=user_id, message='{} {}\n{}\n'.format(user['name'], user['surname'], user['link']))
-        attachment = vf.get_photo(user_id=user_id, owner_id=user['vk_id_user'], mode='photo')
-        if isinstance(attachment, str):
-            VkBot.write_msg(user_id=user_id, message=attachment)
-            VkBot.write_msg(user_id=user_id, message='1. Следующий человек\n2. Поставить лайк\n3. Вернуться назад\n4. Добавить в избранных\n5. Добавить в ЧС', keyboard=search_keyboard)
-            if searching_question(search_keyboard=search_keyboard, count_like=-1, like_for_id=user['vk_id_user'], fav_link=user['link'], fav_name=user['name'], fav_surname=user['surname'], attachment=[]) == True:
-                pass
-            else:
-                return VkBot.write_msg(user_id=user_id, message='Меню:\n1. Начать поиск\n2. Просмотреть черный список\n3. Просмотреть список избранных', keyboard=menu_keyboard)
-        else:
-            VkBot.send_photo(user_id=user_id, attachment=attachment, keyboard=search_keyboard)
-            VkBot.write_msg(user_id=user_id, message='1. Следующий человек\n2. Поставить лайк\n3. Вернуться назад\n4. Добавить в избранных\n5. Добавить в ЧС', keyboard=search_keyboard)
-            if searching_question(search_keyboard=search_keyboard, like_for_id=user['vk_id_user'], photo_id=vf.get_photo(user_id=user_id, owner_id=user['vk_id_user'], mode='photo_id'), count_like=0, fav_link=user['link'], fav_name=user['name'], fav_surname=user['surname'], attachment=attachment) == True:
-                pass
-            else:
-                return VkBot.write_msg(user_id=user_id, message='Меню:\n1. Начать поиск\n2. Просмотреть черный список\n3. Просмотреть список избранных', keyboard=menu_keyboard)
+	search_keyboard = VkBot.create_keyboard([{
+		'name': 'Следующий человек',
+		'color': VkKeyboardColor.SECONDARY,
+		'type': 'text'
+	},
+		{
+			'name': 'Поставить лайк',
+			'color': VkKeyboardColor.POSITIVE,
+			'type': 'text'
+		},
+		{
+			'name': 'Вернуться назад',
+			'color': VkKeyboardColor.PRIMARY,
+			'type': 'text'
+		},
+		{
+			'name': 'Добавить в избранных',
+			'color': VkKeyboardColor.POSITIVE,
+			'type': 'text'
+		},
+		{
+			'name': 'Добавить в ЧС',
+			'color': VkKeyboardColor.NEGATIVE,
+			'type': 'text'
+		}]).get_keyboard()
+	age_at = info_searching(info='age_at', menu_keyboard=menu_keyboard, user_id=user_id)
+	for user in vf.search_users(age_at=age_at,
+								age_to=info_searching(info='age_to', menu_keyboard=menu_keyboard, user_id=user_id,
+													  age_for_comparing=age_at),
+								sex=info_searching(info='sex', menu_keyboard=menu_keyboard, user_id=user_id),
+								city=info_searching(info='city', menu_keyboard=menu_keyboard, user_id=user_id),
+								vk_id=user_id):
+		VkBot.write_msg(user_id=user_id, message='{} {}\n{}\n'.format(user['name'], user['surname'], user['link']))
+		attachment = vf.get_photo(user_id=user_id, owner_id=user['vk_id_user'], mode='photo')
+		if isinstance(attachment, str):
+			VkBot.write_msg(user_id=user_id, message=attachment)
+			VkBot.write_msg(user_id=user_id,
+							message='1. Следующий человек\n2. Поставить лайк\n3. Вернуться назад\n4. Добавить в избранных\n5. Добавить в ЧС',
+							keyboard=search_keyboard)
+			if searching_question(search_keyboard=search_keyboard, count_like=-1, like_for_id=user['vk_id_user'],
+								  fav_link=user['link'], fav_name=user['name'], fav_surname=user['surname'],
+								  attachment=[]) == True:
+				pass
+			else:
+				return VkBot.write_msg(user_id=user_id,
+									   message='Меню:\n1. Начать поиск\n2. Просмотреть черный список\n3. Просмотреть список избранных',
+									   keyboard=menu_keyboard)
+		else:
+			VkBot.send_photo(user_id=user_id, attachment=attachment, keyboard=search_keyboard)
+			VkBot.write_msg(user_id=user_id,
+							message='1. Следующий человек\n2. Поставить лайк\n3. Вернуться назад\n4. Добавить в избранных\n5. Добавить в ЧС',
+							keyboard=search_keyboard)
+			if searching_question(search_keyboard=search_keyboard, like_for_id=user['vk_id_user'],
+								  photo_id=vf.get_photo(user_id=user_id, owner_id=user['vk_id_user'], mode='photo_id'),
+								  count_like=0, fav_link=user['link'], fav_name=user['name'],
+								  fav_surname=user['surname'], attachment=attachment) == True:
+				pass
+			else:
+				return VkBot.write_msg(user_id=user_id,
+									   message='Меню:\n1. Начать поиск\n2. Просмотреть черный список\n3. Просмотреть список избранных',
+									   keyboard=menu_keyboard)
 
-def get_token(open_link_keyboard): # Регистрация токена от пользователя
-    for event in VkBot.longpoll.listen():
-                            if event.type == VkBotEventType.MESSAGE_NEW:
-                                    menu_keyboard = VkBot.create_keyboard([{
-                                                        'name': 'Начать поиск', 
-                                                        'color': VkKeyboardColor.POSITIVE, 
-                                                        'type': 'text'
-                                                        },
-                                                        {
-                                                        'name': 'Просмотреть черный список',
-                                                        'color': VkKeyboardColor.NEGATIVE,
-                                                        'type': 'text'
-                                                        },
-                                                        {
-                                                        'name': 'Просмотреть список избранных',
-                                                        'color': VkKeyboardColor.SECONDARY,
-                                                        'type': 'text'
-                                                        }
-                                                        ]).get_keyboard()
-                                    access_token = event.message['text']
-                                    if 'error' in requests.get('https://api.vk.com/method/users.get', params={'access_token': access_token, 'user_ids': event.message['from_id'], 'fields': 'first_name', 'name_case': 'nom', 'v': '5.131'}).json(): # Запрос делается через requests, так как нужно проверить токен пользователя, если сделать запрос через VkBot, то будет запрос с работающего токена группы
-                                        VkBot.write_msg(user_id=event.message['from_id'], message='Ваш токен неверен, проверьте правильность ввода и отправьте повторно', keyboard=open_link_keyboard)
-                                    else:
-                                        VkBot.write_msg(user_id=event.message['from_id'], message='Привет, {}, я Бот Legacy для поиска людей\n1. Начать поиск\n2. Просмотреть черный список\n3. Просмотреть список избранных\n Для быстрых ответов можно использовать цифры'.format(VkBot.get_name(user_id=event.message['from_id'])[0]), keyboard=menu_keyboard)
-                                        return main(menu_keyboard=menu_keyboard, user_id=event.message['from_id'], access_token=access_token)
 
-def start_bot(): # Первая сессия, которая запускается для получения токена
-    open_link_keyboard = VkBot.create_keyboard([{
-                                                'name': 'Получить',
-                                                'link': 'https://oauth.vk.com/authorize?client_id=51535805&display=page&redirect_uri=https://oauth.vk.com/blank.html&scope=offline,wall,photos&response_type=token&v=5.131&state=123456',
-                                                'type': 'link'
-                                                }]).get_keyboard()
-    for event in VkBot.longpoll.listen():
-        if event.type == VkBotEventType.MESSAGE_NEW:
-            request = event.message['text']
-            if request:
-                    VkBot.write_msg(user_id=event.message['from_id'], 
-                                    message = "1. Для работы приложения пришли мне свой токен\n2. Перед ответами Боту ждите 1 секунду, чтобы он успевал обрабатывать запросы.\n3. Токен находится в адресной строке, в параметре access_token после = и до &", keyboard=open_link_keyboard)
-                    get_token(open_link_keyboard = open_link_keyboard)
+def get_token(open_link_keyboard):  # Регистрация токена от пользователя
+	for event in VkBot.longpoll.listen():
+		if event.type == VkBotEventType.MESSAGE_NEW:
+			menu_keyboard = VkBot.create_keyboard([{
+				'name': 'Начать поиск',
+				'color': VkKeyboardColor.POSITIVE,
+				'type': 'text'
+			},
+				{
+					'name': 'Просмотреть черный список',
+					'color': VkKeyboardColor.NEGATIVE,
+					'type': 'text'
+				},
+				{
+					'name': 'Просмотреть список избранных',
+					'color': VkKeyboardColor.SECONDARY,
+					'type': 'text'
+				}
+			]).get_keyboard()
+			access_token = event.message['text']
+			if 'error' in requests.get('https://api.vk.com/method/users.get',
+									   params={'access_token': access_token, 'user_ids': event.message['from_id'],
+											   'fields': 'first_name', 'name_case': 'nom',
+											   'v': '5.131'}).json():  # Запрос делается через requests, так как нужно проверить токен пользователя, если сделать запрос через VkBot, то будет запрос с работающего токена группы
+				VkBot.write_msg(user_id=event.message['from_id'],
+								message='Ваш токен неверен, проверьте правильность ввода и отправьте повторно',
+								keyboard=open_link_keyboard)
+			else:
+				VkBot.write_msg(user_id=event.message['from_id'],
+								message='Привет, {}, я Бот Legacy для поиска людей\n1. Начать поиск\n2. Просмотреть черный список\n3. Просмотреть список избранных\n Для быстрых ответов можно использовать цифры'.format(
+									VkBot.get_name(user_id=event.message['from_id'])[0]), keyboard=menu_keyboard)
+				return main(menu_keyboard=menu_keyboard, user_id=event.message['from_id'], access_token=access_token)
 
-def main(menu_keyboard, user_id, access_token = None):
-    for event in VkBot.longpoll.listen():
-        if event.type == VkBotEventType.MESSAGE_NEW:
-            request = event.message['text']                                                     
-            if request.lower() == 'начать поиск' or request == '1':
-                VkBot.write_msg(user_id=event.message['from_id'], message='Перед ответами Боту ждите 1 секунду, чтобы он успевал обрабатывать запросы.')
-                if psql.registr_info(event.message['from_id']) == True:
-                    start_search(user_id = event.message['from_id'], menu_keyboard=menu_keyboard)
-                else:
-                    VkBot.write_msg(user_id=user_id, message='Вы ещё не зарегистрированы. Пройдите регистрацию.')
-                    psql.registration(vk_id_user=event.message['from_id'], name=VkBot.get_name(user_id=event.message['from_id'])[0], surname=VkBot.get_name(user_id=event.message['from_id'])[1], age=registration_longpoll(user_id=event.message['from_id'], question='age', menu_keyboard=menu_keyboard), sex=registration_longpoll(user_id=event.message['from_id'], question='sex', menu_keyboard=menu_keyboard), city=registration_longpoll(user_id=event.message['from_id'], question='city', menu_keyboard=menu_keyboard), user_token=access_token)
-                    start_search(user_id = event.message['from_id'], menu_keyboard=menu_keyboard)
-            elif request.lower() == 'просмотреть черный список' or request == '2':
-                VkBot.write_msg(user_id=event.message['from_id'], message='Перед ответами Боту ждите 1 секунду, чтобы он успевал обрабатывать запросы.')
-                if psql.registr_info(vk_id=event.message['from_id']) == True:
-                    black_list_keyboard = VkBot.create_keyboard([{
-                                                    'name': 'Вернуться назад', 
-                                                    'color': VkKeyboardColor.PRIMARY, 
-                                                    'type': 'text'
-                                                    },
-                                                    {
-                                                    'name': 'Убрать человека из ЧС',
-                                                    'color': VkKeyboardColor.NEGATIVE,
-                                                    'type': 'text'
-                                                    }
-                                                    ]).get_keyboard()
-                    black_list_longpoll(user_id=event.message['from_id'], return_keyboard=black_list_keyboard, menu_keyboard=menu_keyboard)
-                else:
-                    VkBot.write_msg(user_id=user_id, message='Вы ещё не зарегистрированы. Пройдите регистрацию.')
-                    psql.registration(vk_id_user=event.message['from_id'], name=VkBot.get_name(user_id=event.message['from_id'])[0], surname=VkBot.get_name(user_id=event.message['from_id'])[1], age=registration_longpoll(user_id=event.message['from_id'], question='age', menu_keyboard=menu_keyboard), sex=registration_longpoll(user_id=event.message['from_id'], question='sex', menu_keyboard=menu_keyboard), city=registration_longpoll(user_id=event.message['from_id'], question='city', menu_keyboard=menu_keyboard), user_token=access_token)
-                    VkBot.write_msg(user_id=event.message['from_id'], message='Вы ещё не начинали поиск\n\n1. Начать поиск\n2. Просмотреть черный список\n3. Просмотреть список избранных', keyboard=menu_keyboard)
-            elif request.lower() == 'просмотреть список избранных' or request == '3':
-                if psql.registr_info(vk_id=event.message['from_id']) == True:
-                    favorite_keyboard = VkBot.create_keyboard([{
-                                                    'name': 'Вернуться назад', 
-                                                    'color': VkKeyboardColor.PRIMARY, 
-                                                    'type': 'text'
-                                                    },
-                                                    {
-                                                    'name': 'Убрать человека из списка избранных',
-                                                    'color': VkKeyboardColor.NEGATIVE,
-                                                    'type': 'text'
-                                                    }
-                                                    ]).get_keyboard()
-                    VkBot.write_msg(user_id=user_id, message='Перед ответами Боту ждите 1 секунду, чтобы он успевал обрабатывать запросы.', keyboard=favorite_keyboard)
-                    favorite_longpoll(user_id=user_id, favorite_keyboard=favorite_keyboard, menu_keyboard=menu_keyboard)
-                else:
-                    VkBot.write_msg(user_id=user_id, message='Вы ещё не зарегистрированы. Пройдите регистрацию.')
-                    psql.registration(vk_id_user=event.message['from_id'], name=VkBot.get_name(user_id=event.message['from_id'])[0], surname=VkBot.get_name(user_id=event.message['from_id'])[1], age=registration_longpoll(user_id=event.message['from_id'], question='age', menu_keyboard=menu_keyboard), sex=registration_longpoll(user_id=event.message['from_id'], question='sex', menu_keyboard=menu_keyboard), city=registration_longpoll(user_id=event.message['from_id'], question='city', menu_keyboard=menu_keyboard), user_token=access_token)
-                    VkBot.write_msg(user_id=event.message['from_id'], message='Вы ещё не начинали поиск\n\n1. Начать поиск\n2. Просмотреть черный список\n3. Просмотреть список избранных', keyboard=menu_keyboard)
-            else:
-                VkBot.write_msg(user_id=event.message['from_id'], message='Выберите команду из предложенных!', keyboard=menu_keyboard)
+
+def start_bot():  # Первая сессия, которая запускается для получения токена
+	open_link_keyboard = VkBot.create_keyboard([{
+		'name': 'Получить',
+		'link': 'https://oauth.vk.com/authorize?client_id=51537818&display=page&redirect_uri=https://oauth.vk.com/blank.html&scope=offline,wall,photos&response_type=token&v=5.131&state=123456',
+		'type': 'link'
+	}]).get_keyboard()
+
+	for event in VkBot.longpoll.listen():
+		if event.type == VkBotEventType.MESSAGE_NEW:
+			request = event.message['text']
+			if request:
+				VkBot.write_msg(user_id=event.message['from_id'],
+								message="1. Для работы приложения пришли мне свой токен\n2. Перед ответами Боту ждите 1 секунду, чтобы он успевал обрабатывать запросы.\n3. Токен находится в адресной строке, в параметре access_token после = и до &",
+								keyboard=open_link_keyboard)
+				get_token(open_link_keyboard=open_link_keyboard)
+
+
+def main(menu_keyboard, user_id, access_token=None):
+	for event in VkBot.longpoll.listen():
+		if event.type == VkBotEventType.MESSAGE_NEW:
+			request = event.message['text']
+			if request.lower() == 'начать поиск' or request == '1':
+				VkBot.write_msg(user_id=event.message['from_id'],
+								message='Перед ответами Боту ждите 1 секунду, чтобы он успевал обрабатывать запросы.')
+				if psql.registr_info(event.message['from_id']) == True:
+					start_search(user_id=event.message['from_id'], menu_keyboard=menu_keyboard)
+				else:
+					VkBot.write_msg(user_id=user_id, message='Вы ещё не зарегистрированы. Пройдите регистрацию.')
+					psql.registration(vk_id_user=event.message['from_id'],
+									  name=VkBot.get_name(user_id=event.message['from_id'])[0],
+									  surname=VkBot.get_name(user_id=event.message['from_id'])[1],
+									  age=registration_longpoll(user_id=event.message['from_id'], question='age',
+																menu_keyboard=menu_keyboard),
+									  sex=registration_longpoll(user_id=event.message['from_id'], question='sex',
+																menu_keyboard=menu_keyboard),
+									  city=registration_longpoll(user_id=event.message['from_id'], question='city',
+																 menu_keyboard=menu_keyboard), user_token=access_token)
+					start_search(user_id=event.message['from_id'], menu_keyboard=menu_keyboard)
+			elif request.lower() == 'просмотреть черный список' or request == '2':
+				VkBot.write_msg(user_id=event.message['from_id'],
+								message='Перед ответами Боту ждите 1 секунду, чтобы он успевал обрабатывать запросы.')
+				if psql.registr_info(vk_id=event.message['from_id']) == True:
+					black_list_keyboard = VkBot.create_keyboard([{
+						'name': 'Вернуться назад',
+						'color': VkKeyboardColor.PRIMARY,
+						'type': 'text'
+					},
+						{
+							'name': 'Убрать человека из ЧС',
+							'color': VkKeyboardColor.NEGATIVE,
+							'type': 'text'
+						}
+					]).get_keyboard()
+					black_list_longpoll(user_id=event.message['from_id'], return_keyboard=black_list_keyboard,
+										menu_keyboard=menu_keyboard)
+				else:
+					VkBot.write_msg(user_id=user_id, message='Вы ещё не зарегистрированы. Пройдите регистрацию.')
+					psql.registration(vk_id_user=event.message['from_id'],
+									  name=VkBot.get_name(user_id=event.message['from_id'])[0],
+									  surname=VkBot.get_name(user_id=event.message['from_id'])[1],
+									  age=registration_longpoll(user_id=event.message['from_id'], question='age',
+																menu_keyboard=menu_keyboard),
+									  sex=registration_longpoll(user_id=event.message['from_id'], question='sex',
+																menu_keyboard=menu_keyboard),
+									  city=registration_longpoll(user_id=event.message['from_id'], question='city',
+																 menu_keyboard=menu_keyboard), user_token=access_token)
+					VkBot.write_msg(user_id=event.message['from_id'],
+									message='Вы ещё не начинали поиск\n\n1. Начать поиск\n2. Просмотреть черный список\n3. Просмотреть список избранных',
+									keyboard=menu_keyboard)
+			elif request.lower() == 'просмотреть список избранных' or request == '3':
+				if psql.registr_info(vk_id=event.message['from_id']) == True:
+					favorite_keyboard = VkBot.create_keyboard([{
+						'name': 'Вернуться назад',
+						'color': VkKeyboardColor.PRIMARY,
+						'type': 'text'
+					},
+						{
+							'name': 'Убрать человека из списка избранных',
+							'color': VkKeyboardColor.NEGATIVE,
+							'type': 'text'
+						}
+					]).get_keyboard()
+					VkBot.write_msg(user_id=user_id,
+									message='Перед ответами Боту ждите 1 секунду, чтобы он успевал обрабатывать запросы.',
+									keyboard=favorite_keyboard)
+					favorite_longpoll(user_id=user_id, favorite_keyboard=favorite_keyboard, menu_keyboard=menu_keyboard)
+				else:
+					VkBot.write_msg(user_id=user_id, message='Вы ещё не зарегистрированы. Пройдите регистрацию.')
+					psql.registration(vk_id_user=event.message['from_id'],
+									  name=VkBot.get_name(user_id=event.message['from_id'])[0],
+									  surname=VkBot.get_name(user_id=event.message['from_id'])[1],
+									  age=registration_longpoll(user_id=event.message['from_id'], question='age',
+																menu_keyboard=menu_keyboard),
+									  sex=registration_longpoll(user_id=event.message['from_id'], question='sex',
+																menu_keyboard=menu_keyboard),
+									  city=registration_longpoll(user_id=event.message['from_id'], question='city',
+																 menu_keyboard=menu_keyboard), user_token=access_token)
+					VkBot.write_msg(user_id=event.message['from_id'],
+									message='Вы ещё не начинали поиск\n\n1. Начать поиск\n2. Просмотреть черный список\n3. Просмотреть список избранных',
+									keyboard=menu_keyboard)
+			else:
+				VkBot.write_msg(user_id=event.message['from_id'], message='Выберите команду из предложенных!',
+								keyboard=menu_keyboard)
+
 
 if __name__ == "__main__":
-    VkBot = Legacy(group_token=group_token)
-    psql.create_tables(engine=psql.engine)
-    start_bot()
-
-
+	VkBot = Legacy(group_token=group_token)
+	psql.create_tables(engine=psql.engine)
+	start_bot()
