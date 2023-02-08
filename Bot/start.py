@@ -45,11 +45,12 @@ def delete_user_from_favorite(
         people_list, 
         user_id,
         menu_keyboard): # Запуск сессии для удаления из списка избранных
-    VkBot.write_msg(user_id=user_id, message='Введите имя и фамилию человека с больщой буквы без пробелов\nПример: Вася Нетологов\n1. Вернуться назад', keyboard=VkBot.create_keyboard(buttons=[{
-																																			'name': 'Вернуться назад',
-																																			'color': VkKeyboardColor.PRIMARY,
-                                                                                                                                            'type': 'text'		                                  
-																																			}]).get_keyboard())
+    answer_keyboard=VkBot.create_keyboard(buttons=[{
+                                            'name': 'Вернуться назад',
+                                            'color': VkKeyboardColor.PRIMARY,
+                                            'type': 'text'		                                  
+                                            }]).get_keyboard()
+    VkBot.write_msg(user_id=user_id, message='Введите имя и фамилию человека с больщой буквы без пробелов\nПример: Вася Нетологов\n1. Вернуться назад', keyboard=answer_keyboard)
     for event in VkBot.longpoll.listen():
         if event.type == VkBotEventType.MESSAGE_NEW:
             request = event.message['text']
@@ -62,9 +63,9 @@ def delete_user_from_favorite(
                         VkBot.write_msg(user_id=user_id, message='Сделано.', keyboard=main_keyboard)
                         return favorite_longpoll(user_id=user_id, favorite_keyboard=main_keyboard, menu_keyboard=menu_keyboard)
                     else:
-                        VkBot.write_msg(user_id=event.message['from_id'], message='Такого человека нет в списке\n1. Вернуться назад', keyboard=main_keyboard)
+                        VkBot.write_msg(user_id=event.message['from_id'], message='Такого человека нет в списке\n1. Вернуться назад', keyboard=answer_keyboard)
             else:
-                VkBot.write_msg(user_id=event.message['from_id'], message='Введите данные корректно\n1. Вернуться назад', keyboard=main_keyboard)
+                VkBot.write_msg(user_id=event.message['from_id'], message='Введите данные корректно\n1. Вернуться назад', keyboard=answer_keyboard)
              
 def registration_longpoll(
         question, 
@@ -205,6 +206,11 @@ def delete_user_from_black_list(
         main_keyboard, 
         people_list, 
         user_id): # Запуск сессии для удаления из черного списка
+    answer_keyboard=VkBot.create_keyboard(buttons=[{
+                                            'name': 'Вернуться назад',
+                                            'color': VkKeyboardColor.PRIMARY,
+                                            'type': 'text'		                                  
+                                            }]).get_keyboard()
     VkBot.write_msg(user_id=user_id, message='Введите имя и фамилию человека\nПример: Вася Нетологов\n1. Вернуться назад', keyboard=main_keyboard)
     for event in VkBot.longpoll.listen():
         if event.type == VkBotEventType.MESSAGE_NEW:
@@ -216,11 +222,11 @@ def delete_user_from_black_list(
                         VkBot.write_msg(user_id=user_id, message='Сделано.')
                         return black_list_longpoll(user_id=user_id, return_keyboard=main_keyboard, menu_keyboard=menu_keyboard)
                     else:
-                        VkBot.write_msg(user_id=event.message['from_id'], message='Такого человека нет в ЧС\n1. Вернуться назад', keyboard=main_keyboard)
+                        VkBot.write_msg(user_id=event.message['from_id'], message='Такого человека нет в ЧС\n1. Вернуться назад', keyboard=answer_keyboard)
             elif request.lower() == 'вернуться назад' or request == '1':
                 return black_list_longpoll(user_id=user_id, return_keyboard=main_keyboard, menu_keyboard=menu_keyboard)
             else:
-                VkBot.write_msg(user_id=event.message['from_id'], message='Введите данные корректно\n1. Вернуться назад', keyboard=main_keyboard)
+                VkBot.write_msg(user_id=event.message['from_id'], message='Введите данные корректно\n1. Вернуться назад', keyboard=answer_keyboard)
 
 def info_searching(
         info, 
@@ -307,9 +313,9 @@ def info_searching(
         VkBot.write_msg(user_id=user_id, message='Введите город, в котором хотите искать:\n 1. Вернуться назад', keyboard=city_keyboard)
         for event in VkBot.longpoll.listen():
             if event.type == VkBotEventType.MESSAGE_NEW:                                                                                                                                        
-                if event.message['text'] == 'Вернуться назад' or event.message['text'] == '1':
+                if event.message['text'].lower() == 'вернуться назад' or event.message['text'] == '1':
                     VkBot.write_msg(user_id=user_id, message='Меню:\n1. Начать поиск\n2. Просмотреть черный список\n3. Просмотреть список избранных', keyboard=menu_keyboard)
-                    return main(menu_keyboard=menu_keyboard) 
+                    return main(menu_keyboard=menu_keyboard, user_id=user_id) 
                 try:
                     return event.object['message']['geo']['place']['city']
                 except:
